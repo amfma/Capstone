@@ -9,6 +9,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
 import crud
+import schema
 
 Base.metadata.create_all(bind=engine)
 
@@ -65,13 +66,12 @@ async def get_users(dbs:Session = Depends(get_db)):
     return usuarios
 
 @app.post('/api/v1/usuarios/')
-async def post_user(email: str, nombres:str, apellidos: str, 
-                    password:str, dbs: Session= Depends(get_db)):
-    return crud.create_user(db=dbs, email=email, nombres=nombres, apellidos=apellidos, password=password)
+async def post_user(user: schema.UserCreate, dbs: Session= Depends(get_db)):
+    return crud.create_user(db=dbs, email=user.email, nombres=user.nombres, apellidos=user.apellidos, password=user.password)
 
 @app.post('/api/v1/login/')
-async def login(email: str, password: str, dbs: Session = Depends(get_db)):
-    return crud.login_user(db=dbs, email=email, password=password)
+async def login(user: schema.UserLogin, dbs: Session = Depends(get_db))->bool:
+    return crud.login_user(db=dbs, email=user.email, password=user.password)
 
 ##MIDDLEWARE PARA IMPLEMENTAR FLASK
 

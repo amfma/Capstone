@@ -8,7 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class Usuario(Base):
     __tablename__ = 'Usuario'
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String(50), index=True)
+    email = Column(String(50), index=True, unique=True)
     nombres = Column(String(100), nullable=False)
     apellidos = Column(String(100), nullable=False)
     password = Column(String(256), nullable=False)
