@@ -3,6 +3,7 @@ from db import Base
 from sqlalchemy import Column, Integer, String, Text, Date, ForeignKey, Numeric, Time, Boolean, DateTime
 from sqlalchemy.orm import relationship
 from datetime import date, datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class Usuario(Base):
     __tablename__ = 'Usuario'
@@ -16,6 +17,14 @@ class Usuario(Base):
     pedidos = relationship("Pedido")
     direcciones = relationship('Direccion')
     tickets = relationship('Ticket')
+
+    #metodos de verificacion
+
+    def set_password(self, pas):
+        self.password = generate_password_hash(pas)
+    
+    def check_password(self, pas):
+        return check_password_hash(self.password, pas)
 
 class Direccion(Base):
     __tablename__ = 'Direccion'

@@ -4,18 +4,23 @@ from models import FAQ, CategoriaFAQ, Comuna, Direccion, InventarioSucursal, Med
 from datetime import date
 
 #Funciones de usuario
-def get_user(db: Session, user_id: int):
+def get_user(db, user_id: int):
     return db.query(Usuario).filter(Usuario.id == user_id).first()
 
 def get_users(db:Session):
     return db.query(Usuario).all()
 
 def create_user(db:Session, email: str, nombres: str, apellidos: str, password:str):
-    usuario = Usuario(email=email, nombres=nombres, apellidos=apellidos, password=password)
+    usuario = Usuario(email=email, nombres=nombres, apellidos=apellidos)
+    usuario.set_password(password)
     db.add(usuario)
     db.commit()
     db.refresh(usuario)
     return usuario
+
+def login_user(db:Session, email:str, password: str):
+    usuario = db.query(Usuario).filter(Usuario.email == email).first()
+    return usuario.check_password(password)
 
 #Funciones de Producto
 def get_product_id(db: Session, producto_id: int):
