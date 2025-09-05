@@ -1,6 +1,6 @@
-#Proyecto capstone Tienda Aurora
+# Proyecto capstone Tienda Aurora
 
-##Backend
+## Backend
 
 Para instalar el ambiente, primero se requiere generar un ambiente virtual de python:
 ```
