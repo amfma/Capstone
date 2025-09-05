@@ -1,6 +1,7 @@
 """main.py contiene el routing y la logica de los endpoints"""
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.wsgi import WSGIMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from db import sesion, engine
 from models import FAQ, CategoriaFAQ, Comuna, Cupon, DetallePedido, Direccion, EstadoTicket, InventarioSucursal, MedioPago, Oferta, Pago, Pedido, Region, Sucursal, Ticket, Usuario, Base, Producto
@@ -49,6 +50,14 @@ def flask_main():
     return 'hello world'
 
 app = FastAPI()
+
+#configuracion de CORS
+
+app.add_middleware(CORSMiddleware, 
+                   allow_origins=['*'], 
+                   allow_credentials=True, 
+                   allow_methods=["*"],
+                   allow_headers=["*"],)
 
 #Endpoints de usuario
 #Todos se encuentran en /api/v1/usuarios/...
