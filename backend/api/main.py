@@ -71,15 +71,43 @@ async def get_user(id: int, dbs:SQLAlchemy = Depends(get_db)):
 
 @app.get('/api/v1/usuarios/')
 async def get_users(dbs:Session = Depends(get_db)):
+    '''Recupera la lista completa de usuarios
+    ADVERTENCIA: Temporalmente devuelve tambien el hash del password, quedando este visible
+    To-do: Crear la clase usuario de respuesta y serializarla en la lista.
+    '''
     usuarios: list[Usuario] = crud.get_users(dbs)
     return usuarios
 
 @app.post('/api/v1/usuarios/')
 async def post_user(user: schema.UserCreate, dbs: Session= Depends(get_db)):
+    '''
+    Dada un diccionario json con los siguientes parametros:
+    {
+    email,
+    nombres,
+    apellidos,
+    password,
+    }
+    Intenta crear el usuario en la base de datos y retornar la informacion del usuario
+    ADVERTENCIA: Muestra el hash del password ingresado
+    TO-DO: Crear clase de pydantic de respuesta. Añadir excepcion en caso de no lograr crear usuario.
+    '''
     return crud.create_user(db=dbs, email=user.email, nombres=user.nombres, apellidos=user.apellidos, password=user.password)
 
 @app.post('/api/v1/login/')
 async def login(user: schema.UserLogin, dbs: Session = Depends(get_db))->bool:
+    '''
+    Dado un diccionario json con los siguientes datos:
+    {
+    email,
+    password,
+    }
+    Intenta iniciar sesion.
+    Retorna un valor booleano:
+    True si el inicio de sesion es valido
+    False si no es valido
+    TO-DO: Crear tokens de autenticacion
+    '''
     return crud.login_user(db=dbs, email=user.email, password=user.password)
 
 ##MIDDLEWARE PARA IMPLEMENTAR FLASK
