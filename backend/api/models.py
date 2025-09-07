@@ -1,4 +1,5 @@
 """"models.py incluye toda la información respecto a los modelos relacionales de la base de datos"""
+from dataclasses import dataclass
 from db import Base
 from sqlalchemy import Column, Integer, String, Text, Date, ForeignKey, Numeric, Time, Boolean, DateTime
 from sqlalchemy.orm import relationship
@@ -14,9 +15,9 @@ class Usuario(Base):
     password = Column(String(256), nullable=False)
 
     #relaciones
-    pedidos = relationship("Pedido")
-    direcciones = relationship('Direccion')
-    tickets = relationship('Ticket')
+    pedidos = relationship("Pedido", back_populates='usuario')
+    direcciones = relationship('Direccion', back_populates='usuario')
+    tickets = relationship('Ticket', back_populates='usuario')
 
     #metodos de verificacion
 
@@ -25,6 +26,10 @@ class Usuario(Base):
     
     def check_password(self, pas):
         return check_password_hash(self.password, pas)
+    
+    #metodos de representacion
+    def __str__(self):
+        return f'user {self.id}, email {self.email}'
 
 class Direccion(Base):
     __tablename__ = 'Direccion'
@@ -36,7 +41,13 @@ class Direccion(Base):
     comentario = Column(Text, nullable=True, default='')
     
     #Relaciones
-    pedidos = relationship("Pedido")
+    pedidos = relationship("Pedido", back_populates='direccion')
+    comuna = relationship('Comuna', back_populates='direcciones')
+    usuario = relationship('Usuario', back_populates='direcciones')
+
+    #metodos de representacion
+    def __str__(self):
+        return f'{self.calle} {self.numero}, {self.comuna}'
 
 class Comuna(Base):
     __tablename__ = 'Comuna'
@@ -45,8 +56,13 @@ class Comuna(Base):
     nombre = Column(String(100), nullable=False)
 
     #relaciones
-    direcciones = relationship('Direccion')
-    sucursales = relationship('Sucursal')
+    direcciones = relationship('Direccion', back_populates='comuna')
+    sucursales = relationship('Sucursal', back_populates='comuna')
+    region = relationship('Region', back_populates='comunas')
+
+    #metodos de representacion
+    def __str__(self):
+        return self.nombre
 
 class Region(Base):
     __tablename__ = 'Region'
@@ -54,7 +70,11 @@ class Region(Base):
     nombre = Column(String(50), nullable=False)
 
     #relaciones
-    comunas = relationship('Comuna')
+    comunas = relationship('Comuna', back_populates='region')
+
+    #metodos de representacion
+    def __str__(self):
+        return self.nombre
 
 class Producto(Base):
     __tablename__ = 'Producto'
@@ -71,6 +91,11 @@ class Producto(Base):
                            back_populates='producto')
     sucursales = relationship('InventarioSucursal', back_populates='producto')
 
+    #metodos de representacion
+
+    def __str__(self):
+        return f'{self.nombre}, {self.sku}'
+
 class Pedido(Base):
     __tablename__ = 'Pedido'
     id = Column(Integer, primary_key=True, index=True)
@@ -82,7 +107,13 @@ class Pedido(Base):
     #relaciones
     productos = relationship('DetallePedido',
                              back_populates='pedido')
-    pagos = relationship('Pago')
+    pagos = relationship('Pago', back_populates='pedido')
+    usuario = relationship('Usuario', back_populates='pedidos')
+    direccion = relationship('Direccion', back_populates='pedidos')
+
+    #metodos de representacion
+    def __str__(self):
+        return f'Pedido {self.id} para usuario {self.usuario} por {self.total}'
     
 class MedioPago(Base):
     __tablename__ = 'MedioPago'
@@ -93,12 +124,23 @@ class MedioPago(Base):
     #relaciones
     pagos = relationship('Pago')
 
+    #Representacion
+    def __str__(self):
+        return self.nombre
+
 class Pago(Base):
     __tablename__ = 'Pago'
     id = Column(Integer, primary_key=True, index=True)
     id_pedido = Column(ForeignKey('Pedido.id'))
     id_medio = Column(ForeignKey('MedioPago.id'))
     total = Column(Integer, nullable=False, default=0)
+
+    #Relaciones
+    pedido = relationship('Pedido', back_populates='pagos')
+    medio= relationship('MedioPago', back_populates='pagos')
+
+    def __str__(self):
+        return f'Pago para{self.id_pedido}, ${self.total}'
 
 class Sucursal(Base):
     __tablename__ = 'Sucursal'
@@ -112,6 +154,10 @@ class Sucursal(Base):
 
     #Relaciones
     productos = relationship('InventarioSucursal', back_populates='sucursal')
+    comuna = relationship('Comuna', back_populates='sucursales')
+
+    def __str__(self):
+        return self.nombre
 
 class Ticket(Base):
     __tablename__ = 'Ticket'
@@ -123,6 +169,13 @@ class Ticket(Base):
     texto = Column(Text, nullable=False)
     ultima_modificacion = Column(Time, nullable=False, default=datetime.now())
 
+    #Relaciones
+    usuario = relationship('Usuario', back_populates='tickets')
+    estado = relationship('EstadoTicket', back_populates='tickets')
+
+    def __str__(self):
+        return f'Ticket {self.id}. Usuario. {self.usuario}, {self.estado}. {self.fecha_ingreso}'
+
 class EstadoTicket(Base):
     __tablename__ = 'EstadoTicket'
     id = Column(Integer, primary_key=True, nullable=False)
@@ -130,7 +183,10 @@ class EstadoTicket(Base):
     descripcion = Column(Text, nullable=True, default='')
 
     #Relaciones
-    tickets = relationship('Ticket')
+    tickets = relationship('Ticket', back_populates='estado')
+
+    def __str__(self):
+        return self.estado
 
 class CategoriaFAQ(Base):
     __tablename__ = 'CategoriaFAQ'
@@ -138,7 +194,10 @@ class CategoriaFAQ(Base):
     nombre = Column(String(50), nullable=False)
 
     #Relaciones
-    preguntas = relationship('FAQ')
+    preguntas = relationship('FAQ', back_populates='categoria')
+
+    def __str__(self):
+        return self.nombre
 
 class FAQ(Base):
     __tablename__ = 'FAQ'
@@ -147,6 +206,12 @@ class FAQ(Base):
     pregunta = Column(String(100), nullable=False)
     resumen = Column(String(100), nullable=False)
     respuesta = Column(Text, nullable=False)
+
+    #Relaciones
+    categoria = relationship('CategoriaFAQ', back_populates='preguntas')
+
+    def __str__(self):
+        return f'{self.id}: {self.pregunta}'
 
 class Cupon(Base):
     __tablename__ = 'Cupon'
@@ -159,6 +224,9 @@ class Cupon(Base):
     usos_hechos = Column(Integer, nullable=False, default=0)
     vigente = Column(Boolean, nullable=False, default=True)
 
+    def __str__(self):
+        return f'Cupon {self.id}, {self.codigo}, vigente: {self.vigente}'
+
 class Oferta(Base):
     __tablename__ = 'Oferta'
     id = Column(Integer, primary_key=True, index=True)
@@ -168,6 +236,9 @@ class Oferta(Base):
     valor = Column(Integer, nullable=True)
     fecha_inicio = Column(Date, nullable=False, default=date.today())
     fecha_fin = Column(Date, nullable=False, default=date.today())
+
+    def __str__(self):
+        return self.titulo
 
 #Tablas de asociacion
 
@@ -180,6 +251,9 @@ class DetallePedido(Base):
     pedido = relationship('Pedido', back_populates='productos')
     producto = relationship('Producto', back_populates='pedidos')
 
+    def __str__(self):
+        return f'{self.pedido}: {self.producto}'
+
 class InventarioSucursal(Base):
     __tablename__ = 'InventarioSucursal'
     sucursal_id = Column(ForeignKey('Sucursal.id'), primary_key=True)
@@ -191,3 +265,5 @@ class InventarioSucursal(Base):
     sucursal = relationship('Sucursal', back_populates='productos')
     producto = relationship('Producto', back_populates='sucursales')
     
+    def __str__(self):
+        return f'Sucursal: {self.sucursal}: {self.producto} - {self.cantidad}'

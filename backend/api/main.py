@@ -11,6 +11,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
 import crud
 import schema
+import fadmin_models
 
 Base.metadata.create_all(bind=engine)
 
@@ -26,12 +27,12 @@ flask_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///aurora.db'
 flask_app.secret_key = 'super secret key'
 fdb = SQLAlchemy(flask_app)
 
-admin = Admin(flask_app, name='microblog', template_mode='bootstrap3')
+admin = Admin(flask_app, name='TiendaAurora', template_mode='bootstrap3')
 admin.add_view(ModelView(Usuario, sesion()))
 admin.add_view(ModelView(Producto, sesion()))
-admin.add_view(ModelView(Comuna,sesion()))
+admin.add_view(fadmin_models.ComunaAdmin(Comuna,sesion()))
 admin.add_view(ModelView(Region,sesion()))
-admin.add_view(ModelView(Direccion,sesion()))
+admin.add_view(fadmin_models.DireccionAdmin(Direccion,sesion()))
 admin.add_view(ModelView(Pedido, sesion()))
 admin.add_view(ModelView(MedioPago,sesion()))
 admin.add_view(ModelView(Pago,sesion()))
