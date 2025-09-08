@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import CartDrawer from "./components/CartDrawer";
@@ -6,9 +8,14 @@ import ChatWidget from "./components/ChatWidget";
 import type { Product, Category } from "./lib/types";
 import { api } from "./lib/api";
 
+import { AuthProvider } from "./context/AuthContext";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+// import ProtectedRoute from "./components/ProtectedRoute"; // si proteges rutas
+
 type Item = Product & { qty:number };
 
-export default function App(){
+function Shop(){
   const [active, setActive] = useState<Category|'todas'>('todas');
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Item[]>([]);
@@ -44,5 +51,25 @@ export default function App(){
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function App(){
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Shop />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* Si quieres rutas privadas:
+          <Route element={<ProtectedRoute />}>
+            <Route path="/checkout" element={<CheckoutPage />} />
+          </Route>
+          */}
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

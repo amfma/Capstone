@@ -1,5 +1,4 @@
 """"models.py incluye toda la información respecto a los modelos relacionales de la base de datos"""
-from dataclasses import dataclass
 from db import Base
 from sqlalchemy import Column, Integer, String, Text, Date, ForeignKey, Numeric, Time, Boolean, DateTime
 from sqlalchemy.orm import relationship
