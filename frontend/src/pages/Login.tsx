@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import axios, { formToJSON } from "axios";
 
 export default function Login() {
   const { login } = useAuth();
@@ -13,9 +14,13 @@ export default function Login() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const formData = new FormData()
+    formData.append('email', email)
+    formData.append('password', password)
     try {
-      setErr(null);
-      await login(email, password);
+      await axios.post('http://localhost:8000/api/v1/login', formToJSON(formData), {
+        headers: { 'Content-Type': 'application/json'}
+      })      
       navigate(from, { replace: true });
     } catch (e: any) {
       setErr(e.message ?? "Error inesperado");

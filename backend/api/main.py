@@ -109,7 +109,10 @@ async def login(user: schema.UserLogin, dbs: Session = Depends(get_db))->bool:
     False si no es valido
     TO-DO: Crear tokens de autenticacion
     '''
-    return crud.login_user(db=dbs, email=user.email, password=user.password)
+    if crud.login_user(db=dbs, email=user.email, password=user.password):
+        return True
+    else:
+        raise HTTPException(422, 'Usuario no valido')
 
 ##MIDDLEWARE PARA IMPLEMENTAR FLASK
 
