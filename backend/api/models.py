@@ -22,7 +22,7 @@ class Usuario(Base):
     nombres = Column(String(100), nullable=False)
     apellidos = Column(String(100), nullable=False)
     password = Column(String(256), nullable=False)
-    id_rol = Column(Integer, ForeignKey('Rol'), default=1)
+    id_rol = Column(Integer, ForeignKey('Rol.id'), default=1)
 
     #relaciones
     pedidos = relationship("Pedido", back_populates='usuario')
