@@ -22,6 +22,10 @@ def login_user(db:Session, email:str, password: str):
     usuario = db.query(Usuario).filter(Usuario.email == email).first()
     return usuario.check_password(password)
 
+def return_login_info(db: Session, email:str):
+    usuario:Usuario = db.query(Usuario).filter(Usuario.email == email).first()
+    return usuario
+
 #Funciones de Producto
 def get_product_id(db: Session, producto_id: int):
     return db.query(Producto).filter(Producto.id == producto_id).first()

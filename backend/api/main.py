@@ -4,7 +4,7 @@ from fastapi.middleware.wsgi import WSGIMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from db import sesion, engine
-from models import FAQ, CategoriaFAQ, Comuna, Cupon, DetallePedido, Direccion, EstadoTicket, InventarioSucursal, MedioPago, Oferta, Pago, Pedido, Region, Sucursal, Ticket, Usuario, Base, Producto
+from models import FAQ, CategoriaFAQ, Comuna, Cupon, DetallePedido, Direccion, EstadoTicket, InventarioSucursal, MedioPago, Oferta, Pago, Pedido, Region, Sucursal, Ticket, Usuario, Base, Producto, Rol
 from flask import Flask
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
@@ -45,6 +45,7 @@ admin.add_view(ModelView(Cupon,sesion()))
 admin.add_view(ModelView(Oferta,sesion()))
 admin.add_view(ModelView(DetallePedido,sesion()))
 admin.add_view(ModelView(InventarioSucursal,sesion()))
+admin.add_view(ModelView(Rol, sesion()))
 
 @flask_app.route('/')
 def flask_main():
@@ -80,7 +81,7 @@ async def get_users(dbs:Session = Depends(get_db)):
     return usuarios
 
 @app.post('/api/v1/usuarios/')
-async def post_user(user: schema.UserCreate, dbs: Session= Depends(get_db)):
+async def post_user(user: schema.UserCreate, dbs: Session= Depends(get_db))->schema.NewUser:
     '''
     Dada un diccionario json con los siguientes parametros:
     {
@@ -93,26 +94,42 @@ async def post_user(user: schema.UserCreate, dbs: Session= Depends(get_db)):
     ADVERTENCIA: Muestra el hash del password ingresado
     TO-DO: Crear clase de pydantic de respuesta. Añadir excepcion en caso de no lograr crear usuario.
     '''
-    return crud.create_user(db=dbs, email=user.email, nombres=user.nombres, apellidos=user.apellidos, password=user.password)
+    try:
+       user = crud.create_user(db=dbs, email=user.email, nombres=user.nombres, apellidos=user.apellidos, password=user.password)
+       return schema.NewUser(status=True, mensaje='Usuario creado')
+    except:  # noqa: E722
+        return schema.NewUser(status=False, mensaje='No se pudo crear el usuario')
+
 
 @app.post('/api/v1/login/')
-async def login(user: schema.UserLogin, dbs: Session = Depends(get_db))->bool:
+async def login(user: schema.UserLogin, dbs: Session = Depends(get_db))->schema.UserLoginData:
     '''
     Dado un diccionario json con los siguientes datos:
     {
     email,
     password,
     }
-    Intenta iniciar sesion.
-    Retorna un valor booleano:
-    True si el inicio de sesion es valido
-    False si no es valido
-    TO-DO: Crear tokens de autenticacion
+
+    Responde con un diccionario con los datos
+    {
+    id,
+    token,
+    mensaje
+    }
+    Verifica si el usuario existe en la base de datos y si su password corresponde.
+
+    Si el usuario no existe o el password no corresponde, responde con id 0, sin token y un mensaje de Usuario o Contraseña Invalido.
+    De otro modo devuelve el id del usuario y token, para ser almacenados en el storage local.
     '''
-    if crud.login_user(db=dbs, email=user.email, password=user.password):
-        return True
-    else:
-        raise HTTPException(422, 'Usuario no valido')
+    try:
+        if crud.login_user(db=dbs, email=user.email, password=user.password):
+            usuario = crud.return_login_info(db=dbs, email=user.email)
+            if usuario:
+                return schema.UserLoginData(id=usuario.id, token='EsteEsUnTokenValido')
+            else:
+                return schema.UserLoginData(id=0, mensaje='Usuario o contraseña invalido')
+    except:  # noqa: E722
+        return schema.UserLoginData(id=0, mensaje='Usuario o contraseña invalido')
 
 ##MIDDLEWARE PARA IMPLEMENTAR FLASK
 

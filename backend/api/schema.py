@@ -9,3 +9,12 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     email: str
     password: str
+
+class UserLoginData(BaseModel):
+    id: int
+    token: str | None = None
+    mensaje: str | None = None
+
+class NewUser(BaseModel):
+    status: bool
+    mensaje: str

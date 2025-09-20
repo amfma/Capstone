@@ -5,6 +5,16 @@ from sqlalchemy.orm import relationship
 from datetime import date, datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
+
+class Rol(Base):
+    __tablename__ = 'Rol'
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String(50), index=True, unique=True)
+
+    #relaciones
+
+    usuarios = relationship('Usuario', back_populates='rol')
+
 class Usuario(Base):
     __tablename__ = 'Usuario'
     id = Column(Integer, primary_key=True, index=True)
@@ -12,11 +22,13 @@ class Usuario(Base):
     nombres = Column(String(100), nullable=False)
     apellidos = Column(String(100), nullable=False)
     password = Column(String(256), nullable=False)
+    id_rol = Column(Integer, ForeignKey('Rol.id'), default=1)
 
     #relaciones
     pedidos = relationship("Pedido", back_populates='usuario')
     direcciones = relationship('Direccion', back_populates='usuario')
     tickets = relationship('Ticket', back_populates='usuario')
+    rol = relationship('Rol', back_populates='usuarios')
 
     #metodos de verificacion
 
