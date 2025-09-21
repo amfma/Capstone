@@ -1,5 +1,5 @@
 // src/lib/auth.ts
-export type AuthUser = { id: string; email: string; name: string };
+export type AuthUser = { id: string; email: string; name: string, lastname:String };
 type StoredUser = AuthUser & { password: string };
 
 const LS_USERS = "mi_tienda_users";
@@ -16,7 +16,7 @@ function writeUsers(users: StoredUser[]) {
 }
 
 // --- FAKE backend (puedes reemplazar por fetch a tu API) ---
-async function fakeRegister(name: string, email: string, password: string) {
+async function fakeRegister(name: string, email: string, password: string, lastname:string) {
   const users = readUsers();
   if (users.some(u => u.email === email)) {
     throw new Error("Ya existe un usuario con ese email");
@@ -26,6 +26,7 @@ async function fakeRegister(name: string, email: string, password: string) {
     name,
     email,
     password,
+    lastname
   };
   users.push(newUser);
   writeUsers(users);
@@ -54,9 +55,17 @@ async function fakeLogin(email: string, password: string) {
 }
 
 // --- API pública que usa el resto de la app ---
-export async function register(name: string, email: string, password: string) {
+export async function register(name: string, lastname:string, email: string, password: string) {
   // reemplaza por: return fetch('/api/register', { ... })
-  return fakeRegister(name, email, password);
+  const response = await fetch('http://localhost:8000/api/v1/usuarios', {
+    method: "POST",
+    headers: { 'Content-Type': 'application/json'},
+    body: JSON.stringify({nombres: name, apellidos: lastname, email: email, password: password})
+  })
+  const data = await response.json()
+  if(!data.status){
+    throw new Error('Correo ya registrado')
+  }
 }
 
 export async function login(email: string, password: string) {

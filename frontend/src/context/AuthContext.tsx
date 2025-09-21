@@ -33,7 +33,7 @@ type AuthContextType = {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, lastname: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const res = await fakeLogin(email, password);
     setUser(res.user);
   };
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name: string, lastname:string, email: string, password: string) => {
     const res = await fakeRegister(name, email, password);
     setUser(res.user);
   };
