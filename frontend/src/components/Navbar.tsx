@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import type { Category } from "../lib/types";
+import { logout } from "../lib/auth";
 
 const CATS: { key: Category; label: string }[] = [
   { key: "zapatos", label: "Zapatos" },
@@ -13,8 +13,8 @@ const CATS: { key: Category; label: string }[] = [
 export default function Navbar({
   active, onChange, onOpenCart
 }:{ active: Category|'todas'; onChange:(c:Category|'todas')=>void; onOpenCart:()=>void }) {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const user = localStorage.getItem("mi_tienda_me")
 
   const handleLogout = () => {
     logout();
@@ -38,7 +38,7 @@ export default function Navbar({
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <span className="hidden sm:inline text-sm text-gray-600">Hola, {user.name.split(" ")[0]}</span>
+              <span className="hidden sm:inline text-sm text-gray-600">Hola</span>
               <button onClick={handleLogout} className="text-sm underline underline-offset-2 hover:text-black">Salir</button>
             </>
           ) : (
@@ -62,7 +62,7 @@ export default function Navbar({
         <div className="max-w-6xl mx-auto px-4 pb-3 flex items-center justify-end gap-3">
           {user ? (
             <>
-              <span className="text-sm text-gray-600">Hola, {user.name.split(" ")[0]}</span>
+              <span className="text-sm text-gray-600">Hola </span>
               <button onClick={handleLogout} className="text-sm underline underline-offset-2 hover:text-black">Salir</button>
             </>
           ) : (
