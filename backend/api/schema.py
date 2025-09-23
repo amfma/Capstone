@@ -18,3 +18,15 @@ class UserLoginData(BaseModel):
 class NewUser(BaseModel):
     status: bool
     mensaje: str
+
+class ProductoVenta(BaseModel):
+    id: int
+    cantidad: int
+
+class Producto(ProductoVenta):
+    precio: int
+
+class InputVenta(BaseModel):
+    user_id: int
+    subtotal: int
+    productos: list[ProductoVenta]

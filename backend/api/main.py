@@ -12,6 +12,7 @@ from flask_sqlalchemy import SQLAlchemy
 import crud
 import schema
 import fadmin_models
+import models
 
 Base.metadata.create_all(bind=engine)
 
@@ -130,6 +131,39 @@ async def login(user: schema.UserLogin, dbs: Session = Depends(get_db))->schema.
                 return schema.UserLoginData(id=0, mensaje='Usuario o contraseña invalido')
     except:  # noqa: E722
         return schema.UserLoginData(id=0, mensaje='Usuario o contraseña invalido')
+    
+@app.post('/api/test/venta')
+async def procesar_venta(venta: schema.InputVenta, dbs: Session = Depends(get_db)):
+    cantidades = [p.cantidad for p in venta.productos]
+    identificadores = [p.id for p in venta.productos]
+    productos_buscados = dbs.query(models.InventarioSucursal, models.Producto).filter(
+        models.Producto.id.in_(identificadores)).filter(
+            models.InventarioSucursal.producto_id == models.Producto.id
+        ).filter(
+            models.InventarioSucursal.sucursal_id == 1
+        ).all()
+    pedido = models.Pedido(id_usuario = venta.user_id, subtotal=0, total=0)
+    dbs.add(pedido)
+    dbs.commit()
+    dbs.refresh(pedido)
+
+    for producto in productos_buscados:
+        p = schema.Producto(id=producto[1].id, 
+                            cantidad=producto[0].cantidad, 
+                            precio=producto[1].precio)
+        if p.cantidad < cantidades[identificadores.index(p.id)]:
+            return False
+        o = dbs.query(models.InventarioSucursal).filter(
+            models.InventarioSucursal.producto_id == p.id).filter(
+                models.InventarioSucursal.sucursal_id == 1
+            ).first()
+        o.cantidad -= p.cantidad
+        pedido.total += p.precio * p.cantidad
+        dbs.add(models.DetallePedido(pedido_id=pedido.id, producto_id=p.id))
+        dbs.commit()
+        dbs.refresh(pedido)
+
+    return {'pedido': pedido}
 
 ##MIDDLEWARE PARA IMPLEMENTAR FLASK
 
