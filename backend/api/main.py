@@ -9,6 +9,7 @@ from flask import Flask
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
+from webpay import enviar_pago
 import crud
 import schema
 import fadmin_models
@@ -163,7 +164,8 @@ async def procesar_venta(venta: schema.InputVenta, dbs: Session = Depends(get_db
         dbs.commit()
         dbs.refresh(pedido)
 
-    return {'pedido': pedido}
+    respuesta = enviar_pago(pedido)
+    return {'pedido': respuesta}
 
 ##MIDDLEWARE PARA IMPLEMENTAR FLASK
 
